@@ -24,3 +24,6 @@ yarn.lock
 # IDE files
 .vscode/
 .idea/
+
+# large files
+large-files/
