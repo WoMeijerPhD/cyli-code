@@ -21,7 +21,7 @@ function canvasDraw() {
     // draw a 10 by 10 orange rectangle at the top left corner of the canvas
     ctx.fillStyle = "#f90";
     ctx.fillRect(0, 0, 10, 10);
-  ctx.fillStyle = "#f00";
+    ctx.fillStyle = "#f00";
     ctx.beginPath();
     ctx.arc(x, y, RADIUS, 0, Math.PI * 2, true);
     ctx.fill();

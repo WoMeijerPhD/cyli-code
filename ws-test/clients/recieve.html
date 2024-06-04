@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Client</title>
+</head>
+<body>
+    <h1>Receive Data</h1>
+    <p>Open the console to see the received data.</p>
+
+    <p id="server-connected"> </p>
+    <p id="server-message"> </p>
+    <canvas width="300" height="300" id="canvas"></canvas>
+
+    <script>
+        const ws = new WebSocket("ws://localhost:8080");
+
+        ws.onopen = function open() {
+            console.log("Connected to server!");
+            document.getElementById("server-connected").innerText = "Connected to server!";
+        };
+
+        ws.onmessage = function incoming(data) {
+            const coordinates = JSON.parse(data.data); // Parse received JSON data
+            console.log("Received X:", coordinates.x, "Y:", coordinates.y);
+            // You can use these coordinates to update UI elements or perform actions
+            document.getElementById("server-message").innerText = `Received X: ${coordinates.x}, Y: ${coordinates.y}`;
+            drawCircle(coordinates.x, coordinates.y);
+        };
+
+        // Get the canvas element
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // set the canvas background color to light grey
+        ctx.fillStyle = '#f1f1f1';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+
+        function drawCircle(x, y) {
+            // wrap the x and y values to fit the canvas
+            x = Math.abs(x % canvas.width);
+            y = Math.abs(y % canvas.height);
+
+            console.log("Drawing circle at X:", x, "Y:", y);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, 2 * Math.PI);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+        }
+
+    </script>
+</body>
+</html>

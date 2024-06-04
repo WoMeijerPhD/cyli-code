@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Example</title>
+
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Page for sending mouse data</h1>
+    <p id="server-status">Server not connected</p>
+    <p>If you click on the canvas with a mouse, the input should be captured and start streaming via websockets to the host machine</p>
+    <p id="tracker">X:0, Y:0<p>
+    <canvas width="400" height="400" id="canvas"></canvas>
+
+    <script>
+        // Create a WebSocket connection
+        const socket = new WebSocket('ws://localhost:8080');
+        socket.onopen = function() {
+            document.getElementById("server-status").innerText = "Connected to server!";
+        };
+
+        socket.onerror = function(error) {
+            console.log('WebSocket Error: ');
+            console.log(error);
+            document.getElementById("server-status").innerText = 'WebSocket Error: ' + error.type;
+        };
+        socket.onclose  = function() {
+            console.log('WebSocket connection closed');
+        };
+
+        function sendMouseData(){
+            const data = {
+                x: x,
+                y: y,
+                dx: dx,
+                dy: dy
+            };
+            socket.send(JSON.stringify(data));
+          
+
+        }
+
+        // Get the canvas element
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const tracker = document.getElementById("tracker");
+
+        // Function to draw a circle on the canvas
+        function drawCircle(x, y) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, 2 * Math.PI);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+        }
+
+
+        const RADIUS = 20;
+
+        let x = 0;
+        let y = 0;
+        let tX =0;
+        let tY =0;
+        let dx,dy = 0;
+        let maxDY = 0; 
+        let lastY = 0;
+
+        function canvasDraw() {
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+            ctx.fillStyle = "#f00";
+            ctx.beginPath();
+            ctx.arc(x, y, RADIUS, 0, Math.PI * 2, true);
+            ctx.fill();
+            ctx.closePath();
+            ctx.fill();
+
+        } // end of function canvasDraw
+
+        canvasDraw();
+
+        canvas.addEventListener("click", async () => {
+        if(!document.pointerLockElement) {
+            await canvas.requestPointerLock({
+            unadjustedMovement: true,
+            });
+        }
+        });
+        document.addEventListener("pointerlockchange", lockChangeAlert, false);
+
+        function lockChangeAlert() {
+            if (document.pointerLockElement === canvas) {
+                console.log("The pointer lock status is now locked");
+                document.addEventListener("mousemove", updatePosition, false);
+            } else {
+                console.log("The pointer lock status is now unlocked");
+                document.removeEventListener("mousemove", updatePosition, false);
+            }
+        }
+
+        let animation;
+        function updatePosition(e) {
+        function updateCoord(pos, delta, max) {
+            pos += delta;
+            pos %= max;
+            if (pos < 0) {
+            pos += max;
+            }
+            return pos;
+        }
+        
+
+        x = updateCoord(x, e.movementX, canvas.width);
+        y = updateCoord(y, e.movementY, canvas.height);
+        tX += e.movementX;
+        tY += e.movementY;
+        dx = e.movementX;
+        dy = e.movementY;
+
+        if( y == lastY)
+        {
+            maxDY = 0;
+        }
+        else{
+
+            maxDY = (Math.abs(dy) -Math.abs(dy)%10)-.1;
+        }
+        lastY = y;
+
+
+        tracker.textContent = `X position: ${x} | ${tX}, Y position: ${y} | ${tY} max dy: ${maxDY}`;
+
+        if (!animation) {
+            animation = requestAnimationFrame(function () {
+            animation = null;
+            canvasDraw();
+            sendMouseData(tX,tY);
+            });
+        }
+        }
+
+    </script>
+</body>
+</html>

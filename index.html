@@ -2,6 +2,11 @@
 <html>
 <head>
     <title>My Web Page</title>
+    <!-- use the /barebones/normailize.css -->
+    <link rel="stylesheet" href="/barebones/normalize.css">
+    <link rel="stylesheet" href="/barebones/barebones.css">
+    <link rel="stylesheet" href="/barebones/skeleton-legacy.css">
+
     <style>
         .container {
             width: 100%;
@@ -42,6 +47,10 @@
             width: 100%;
             height: 100%;
         }
+        #video-slider {
+            width: 100%;
+            /* make the input bigger */
+                    }
 
     </style>
 </head>
@@ -54,39 +63,117 @@
         <div class="overlay">
             <canvas width="1000" height="1000" id="canvas"></canvas>
             <video loop class="video">
-                <source src="/large-files/paris-light.mp4" type="video/mp4" controls>
+                <source src="/large-files/paris-light.mp4" type="video/mp4" preload=”auto” controls>
                 Your browser does not support the video tag.
             </video>
 
         </div>
 
         <div class="footer">
-            <div id="tracker"></div>
+            <input type="range" min="1" max="100" value="0" class="slider" id="video-slider" list="markers">
+            <datalist id="markers">
+
+            </datalist>
+            <br>
             <button id="play-button">Play</button>
             <button id="pause-button">Pause</button>
-
+            <button id="bookmark-button">Bookmark</button>
         </div>
 
     </div>
 
     <script>
-        var video = document.querySelector('video');
+        let video = document.querySelector('video');
         video.addEventListener('click', function() {
             video.play();
         });
 
-        var playButton = document.getElementById('play-button');
+        let playButton = document.getElementById('play-button');
         playButton.addEventListener('click', function() {
             video.play();
         });
 
-        var pauseButton = document.getElementById('pause-button');
+        let pauseButton = document.getElementById('pause-button');
         pauseButton.addEventListener('click', function() {
             video.pause();
+            // update the 
         });
 
+        let slider = document.getElementById('video-slider');
+        slider.addEventListener('input', function() {
+            video.currentTime = video.duration * (slider.value / 100);
+        });
+        video.addEventListener('timeupdate', function() {
+            slider.value = (video.currentTime / video.duration) * 100;
+        });
+
+        let bookmarkButton = document.getElementById('bookmark-button');
+        bookmarkButton.addEventListener('click', function() {
+            console.log("Bookmarking at", video.currentTime);
+            let marker = document.createElement('option');
+            marker.value = slider.value;
+            document.getElementById('markers').appendChild(marker);
+        });
+
+        // begin the websocket connection
+        const ws = new WebSocket("ws://localhost:8080");
+
+        let x,y = 0;
+
+        ws.onopen = function open() {
+            console.log("Connected to server!");
+
+        };
+
+        ws.onmessage = function incoming(data) {
+            const coordinates = JSON.parse(data.data); // Parse received JSON data
+            console.log("Received X:", coordinates.x, "Y:", coordinates.y);
+
+            x = coordinates.x;
+            y = coordinates.y;
+            //
+            // updateVideo(x,y);
+            videoDelta(coordinates.dx,coordinates.dy);
+        };
+
+
+        let duration =0;
+        let lastDuration = 0;
+        const offset = .0005;
+
+
+        duration = video.currentTime;
+
+
+        function videoDelta(dx,dy){
+            dy = dy/100;
+            duration = video.currentTime + dy;
+            if(duration < 0){
+                duration = 0;
+            }
+            if(duration > video.duration){
+                duration = video.duration;
+            }
+            video.currentTime = duration;
+            lastDuration = duration;
+        }
+
+        function updateVideo(x,y){
+            duration = Math.abs(y/2000);
+            console.log("duration: ", duration);
+            if(Math.abs(duration - lastDuration) > offset) {
+                console.log("changing duration");
+                lastDuration = duration;
+                seekVideo(duration);
+            }
+            lastX = x;
+            lastY = y;
+
+        }
+        function seekVideo(seekpercent){
+            video.currentTime = seekpercent * video.duration;
+        }
     </script>
-    <!-- import the /app.js script -->
-    <script src="/app.js"></script>
+
 </body>
 </html>
