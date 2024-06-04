@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Web Page</title>
+    <style>
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .header {
+            background-color: #f1f1f1;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .video {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .footer {
+            background-color: #f1f1f1;
+            padding: 10px;
+            text-align: center;
+        }
+        /* make the canvas an overlay for the video */
+        .overlay {
+            position: relative;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cyli Display test</h1>
+        </div>
+
+        <div class="overlay">
+            <canvas width="1000" height="1000" id="canvas"></canvas>
+            <video loop class="video">
+                <source src="/large-files/paris-light.mp4" type="video/mp4" controls>
+                Your browser does not support the video tag.
+            </video>
+
+        </div>
+
+        <div class="footer">
+            <div id="tracker"></div>
+            <button id="play-button">Play</button>
+            <button id="pause-button">Pause</button>
+
+        </div>
+
+    </div>
+
+    <script>
+        var video = document.querySelector('video');
+        video.addEventListener('click', function() {
+            video.play();
+        });
+
+        var playButton = document.getElementById('play-button');
+        playButton.addEventListener('click', function() {
+            video.play();
+        });
+
+        var pauseButton = document.getElementById('pause-button');
+        pauseButton.addEventListener('click', function() {
+            video.pause();
+        });
+
+    </script>
+    <!-- import the /app.js script -->
+    <script src="/app.js"></script>
+</body>
+</html>
